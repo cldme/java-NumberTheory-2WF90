@@ -33,6 +33,9 @@ public class NumberTheory {
     public static String OPERATION;
     // Variable for storing the final sign of the computation
     public static char SIGN = ' ';
+    // Variables for storing the signs of X and Y
+    public static char SIGN_X;
+    public static char SIGN_Y;
     
     public static void main(String[] args) {
         // TODO code application logic here
@@ -120,17 +123,21 @@ public class NumberTheory {
             // Convert xNumber to an array of digits (in reverse order)
             // IMPORTANT: The array will have on position 0 the number of digits
             X = getDigits(xNumber);
+            // Read the sign for X
+            SIGN_X = (xNumber.charAt(0) == '-') ? '-' : '+';
             
             // Convert yNumber to an array of digits (in reverse order)
             // IMPORTANT: The array will have on position 0 the number of digits
             Y = getDigits(yNumber);
+            // Read the sign for Y
+            SIGN_Y = (yNumber.charAt(0) == '-') ? '-' : '+';
             
             // Compare X and Y so that X > Y (if not interchange the two vectors)
             // IMPORTANT: Here we also need to consider the special cases
             // i.e: add two numbers, the second one is negative means changing the operation to subtraction ?!
             compareXY();
             
-            switch(operation) {
+            switch(OPERATION) {
                 case "add":
                     System.out.println("add");
                     add(X, Y, b);
@@ -198,27 +205,90 @@ public class NumberTheory {
         
         int i = X.length-1, j = 0;
         int x,y;
+        // XleY is X <= Y; XlY is X < Y; XgY is X > Y
+        boolean XleY, XlY, XgY;
+        XleY = XlY = XgY = false;
         
         if(X.length == Y.length) {
             x = digits.get(X[i]);
             y = digits.get(Y[i]);
-            while(x == y) {
+            while(x == y && i > 0) {
                 i -= 1;
                 x = digits.get(X[i]);
                 y = digits.get(Y[i]);
             }
-            if(x < y) {
-                // IMPORTANT: If operation is subtraction then result will be negative
-                // i.e: SIGN = '-'
-                if(OPERATION.equals("subtract")) SIGN = '-';
-                char[] Z = X;
-                X = Y;
-                Y = Z;
+            if(x < y || i <= 0) {
+                changeArrays();
+                XleY = XlY = true;
             }
         } else if(X.length < Y.length) {
-            char[] Z = X;
-            X = Y;
-            Y = Z;
+            changeArrays();
+            XlY = true;
+        } else {
+            XgY = true;
+        }
+        
+        computeSign(XleY, XlY, XgY);
+    }
+    
+    public static void changeArrays() {
+        // Change the two arrays such that X > Y
+        char[] Z = X;
+        X = Y;
+        Y = Z;
+    }
+    
+    public static void computeSign(boolean XleY, boolean XlY, boolean XgY) {
+        // Program enters this function call when x <= y
+        // IMPORTANT: See table below code to check for sign conversion
+        // i.e: SIGN = '-'
+        switch(OPERATION) {
+            case "add":
+                if(SIGN_X == '+' && SIGN_Y == '+') {
+                    SIGN = '+';
+                }
+                if(SIGN_X == '+' && SIGN_Y == '-' && !XlY) {
+                    SIGN = '+';
+                    OPERATION = "subtract";
+                }
+                if(SIGN_X == '+' && SIGN_Y == '-' &&  XlY) {
+                    SIGN = '-';
+                    OPERATION = "subtract";
+                }
+                if(SIGN_X == '-' && SIGN_Y == '+' &&  XgY) {
+                    SIGN = '-';
+                    OPERATION = "subtract";
+                }
+                if(SIGN_X == '-' && SIGN_Y == '+' && !XgY) {
+                    SIGN = '+';
+                    OPERATION = "subtract";
+                }
+                if(SIGN_X == '-' && SIGN_Y == '-') {
+                    SIGN = '-';
+                }
+                break;
+            case "subtract":
+                if(SIGN_X == '+' && SIGN_Y == '+' && !XlY) {
+                    SIGN = '+';
+                }
+                if(SIGN_X == '+' && SIGN_Y == '+' &&  XlY) {
+                    SIGN = '-';
+                }
+                if(SIGN_X == '+' && SIGN_Y == '-') {
+                    SIGN = '+';
+                    OPERATION = "add";
+                }
+                if(SIGN_X == '-' && SIGN_Y == '+') {
+                    SIGN = '-';
+                    OPERATION = "add";
+                }
+                if(SIGN_X == '-' && SIGN_Y == '-' && !XgY) {
+                    SIGN = '+';
+                }
+                if(SIGN_X == '-' && SIGN_Y == '-' && XgY) {
+                    SIGN = '-';
+                }
+                break;
         }
     }
     
@@ -290,8 +360,9 @@ public class NumberTheory {
             Y.add(digit);
         }
         
-        // Print the correct sign (now works only for subtraction)
-        if(SIGN != ' ') {
+        // !! TO-DO: Multiply and Karatsuba
+        // Print the correct sign (now works for add/subtract)
+        if(SIGN != ' ' && SIGN != '+') {
             System.out.print(SIGN);
             // Revert the sign back to its original state
             SIGN = ' ';
@@ -305,3 +376,16 @@ public class NumberTheory {
         System.out.println();
     }
 }
+
+/* 
+// Table that shows which is the final sign of the computation \\
+// | op  | x | y | op' | sign |
+// | add | + | + | add |   +  |
+// | add | + | - | sub |  +/- |     x > y --> (sign = -) OR x <= y --> (sign = +)
+// | add | - | + | sub |  +/- |     x >= y --> (sign = +) OR x < y --> (sign = -)
+// | add | - | - | add |   -  |
+// | sub | + | + | sub |  +/- |     x >= y --> (sign = +) OR x < y --> (sign = -)
+// | sub | + | - | add |   +  |
+// | sub | - | + | add |   -  |
+// | sub | - | - | sub |  +/- |     x > y --> (sign = -) OR x <= y --> (sign = +)
+*/

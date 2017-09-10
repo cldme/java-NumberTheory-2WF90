@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.HashMap;
 
 
-///test comitting
 public class NumberTheory {
 
     /**
@@ -27,6 +26,13 @@ public class NumberTheory {
     public static Map<Integer, Character> letters = new HashMap<Integer, Character>();
     // Arrays for storing the different types of digits
     public static char[] digitsReal = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    // Arrays for storing the two numbers
+    public static char[] X;
+    public static char[] Y;
+    // Variable for storing the current operation
+    public static String OPERATION;
+    // Variable for storing the final sign of the computation
+    public static char SIGN = ' ';
     
     public static void main(String[] args) {
         // TODO code application logic here
@@ -108,13 +114,21 @@ public class NumberTheory {
             // Convert the base from string to int
             int b = Integer.parseInt(radix);
             
+            // Update the global operation
+            OPERATION = operation;
+            
             // Convert xNumber to an array of digits (in reverse order)
             // IMPORTANT: The array will have on position 0 the number of digits
-            char[] X = getDigits(xNumber);
+            X = getDigits(xNumber);
             
             // Convert yNumber to an array of digits (in reverse order)
             // IMPORTANT: The array will have on position 0 the number of digits
-            char[] Y = getDigits(yNumber);
+            Y = getDigits(yNumber);
+            
+            // Compare X and Y so that X > Y (if not interchange the two vectors)
+            // IMPORTANT: Here we also need to consider the special cases
+            // i.e: add two numbers, the second one is negative means changing the operation to subtraction ?!
+            compareXY();
             
             switch(operation) {
                 case "add":
@@ -122,8 +136,8 @@ public class NumberTheory {
                     add(X, Y, b);
                     break;
                 case "subtract":
-                    //System.out.println("subtract");
-                    break;
+                    System.out.println("subtract");
+                    subtract(X, Y, b);
                 case "multiply":
                     //System.out.println("multiply");
                     break;    
@@ -180,6 +194,34 @@ public class NumberTheory {
         }
     }
     
+    public static void compareXY() {
+        
+        int i = X.length-1, j = 0;
+        int x,y;
+        
+        if(X.length == Y.length) {
+            x = digits.get(X[i]);
+            y = digits.get(Y[i]);
+            while(x == y) {
+                i -= 1;
+                x = digits.get(X[i]);
+                y = digits.get(Y[i]);
+            }
+            if(x < y) {
+                // IMPORTANT: If operation is subtraction then result will be negative
+                // i.e: SIGN = '-'
+                if(OPERATION.equals("subtract")) SIGN = '-';
+                char[] Z = X;
+                X = Y;
+                Y = Z;
+            }
+        } else if(X.length < Y.length) {
+            char[] Z = X;
+            X = Y;
+            Y = Z;
+        }
+    }
+    
     // Function for adding two numbers
     public static void add(char[] A, char[] B, int b) {
         
@@ -198,8 +240,44 @@ public class NumberTheory {
         // Update the new number of digits
         i -= 1;
         
-        // Convert the number back to a char array
+        // Convert the number back to a char array and print to console
         // IMPORTANT: Now we also convert bigger digits to letters
+        computeResult(X, i);
+    }
+    
+    // Function for subtracting two numbers
+    public static void subtract(char[] A, char[] B, int b) {
+        
+        int i, t = 0;
+        ArrayList<Integer> X = new ArrayList<>();
+        ArrayList<Character> Y = new ArrayList<>();
+        int x, y;
+        
+        // IMPORTANT: A.length > B.length (arrange the two numbers before the function call)
+        for(i = 0; i < A.length; i++) {
+            x = digits.get(A[i]);
+            y = (i < B.length) ? digits.get(B[i]) : 0;
+            
+            x -= y + t;
+            t = (x < 0) ? 1 : 0;
+            x += t * b;
+            
+            // Add the value to the new array list
+            X.add(i, x);
+        }
+        
+        while(X.size() > 1 && X.get(X.size()-1) == 0) {
+            X.remove(X.size()-1);
+        }
+        
+        // Convert the number back to a char array and print to console
+        // IMPORTANT: Now we also convert bigger digits to letters
+        computeResult(X, X.size()-1);
+    }
+    
+    public static void computeResult(ArrayList<Integer> X, int i) {
+        
+        ArrayList<Character> Y = new ArrayList<>();
         
         for(int j = i; j >= 0; j--) {
             // Get the value of the new digit
@@ -212,9 +290,15 @@ public class NumberTheory {
             Y.add(digit);
         }
         
+        // Print the correct sign (now works only for subtraction)
+        if(SIGN != ' ') {
+            System.out.print(SIGN);
+            // Revert the sign back to its original state
+            SIGN = ' ';
+        }
+        
         // Return the result i.e: print the array Y to the console
         // IMPORTANT: The array Y has the digits in the correct order
-        
         for(int j = 0; j < Y.size(); j++) {
             System.out.print(Y.get(j));
         }

@@ -345,6 +345,8 @@ public class NumberTheory {
         computeResult(X, X.size()-1);
     }
     
+    // Function for converting the computed array list back to chars
+    // This function also prints the result to the console
     public static void computeResult(ArrayList<Integer> X, int i) {
         
         ArrayList<Character> Y = new ArrayList<>();
@@ -376,6 +378,22 @@ public class NumberTheory {
         System.out.println();
     }
 }
+
+/*
+// Function for multiplying two numbers
+void mul(int A[], int B[])
+{
+      int i, j, t, C[NR_CIFRE];
+      memset(C, 0, sizeof(C));
+      for (i = 1; i <= A[0]; i++)
+      {
+              for (t=0, j=1; j <= B[0] || t; j++, t/=10)
+                      C[i+j-1]=(t+=C[i+j-1]+A[i]*B[j])%10;
+              if (i + j - 2 > C[0]) C[0] = i + j - 2;
+      }
+      memcpy(A, C, sizeof(C));
+}
+*/
 
 /* 
 // Table that shows which is the final sign of the computation \\

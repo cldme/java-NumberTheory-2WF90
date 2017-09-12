@@ -72,12 +72,12 @@ public class NumberTheory {
                 // Used for debugging to print the input file to the console
                 //System.out.println(line);
                 
+                // Trim extra whitespaces from the beginning/end of the string
+                    line = line.trim();
+                
                 // Store each line in the hash map
                 // IMPORTANT: Stores all the lines that are not comments (do not start with # symbol)
                 if(line.length() > 0 && line.charAt(0) != '#') {    
-                    
-                    // Trim extra whitespaces from the beginning/end of the string
-                    line = line.trim();
                     
                     // Add the new line to the map
                     map.put(i, line);

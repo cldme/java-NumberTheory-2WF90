@@ -29,6 +29,8 @@ public class NumberTheory {
     // Arrays for storing the two numbers
     public static char[] X;
     public static char[] Y;
+    // Variables for comparing the two numbers
+    public static boolean XleY, XlY, XgY;
     // Variable for storing the current operation
     public static String OPERATION;
     // Variable for storing the final sign of the computation
@@ -136,6 +138,8 @@ public class NumberTheory {
             // IMPORTANT: Here we also need to consider the special cases
             // i.e: add two numbers, the second one is negative means changing the operation to subtraction ?!
             compareXY();
+            // Compute the sign of the final operation
+            computeSign();
             
             switch(OPERATION) {
                 case "add":
@@ -145,8 +149,10 @@ public class NumberTheory {
                 case "subtract":
                     System.out.println("subtract");
                     subtract(X, Y, b);
+                    break;
                 case "multiply":
-                    //System.out.println("multiply");
+                    System.out.println("multiply");
+                    multiply(X, Y, b);
                     break;    
                 case "karatsuba":
                     //System.out.println("karatsuba");
@@ -206,7 +212,6 @@ public class NumberTheory {
         int i = X.length-1, j = 0;
         int x,y;
         // XleY is X <= Y; XlY is X < Y; XgY is X > Y
-        boolean XleY, XlY, XgY;
         XleY = XlY = XgY = false;
         
         if(X.length == Y.length) {
@@ -217,8 +222,11 @@ public class NumberTheory {
                 x = digits.get(X[i]);
                 y = digits.get(Y[i]);
             }
-            if(x < y || i <= 0) {
+            if(x < y) {
                 changeArrays();
+                XleY = XlY = true;
+            }
+            if(i == 0) {
                 XleY = XlY = true;
             }
         } else if(X.length < Y.length) {
@@ -227,8 +235,6 @@ public class NumberTheory {
         } else {
             XgY = true;
         }
-        
-        computeSign(XleY, XlY, XgY);
     }
     
     public static void changeArrays() {
@@ -238,7 +244,7 @@ public class NumberTheory {
         Y = Z;
     }
     
-    public static void computeSign(boolean XleY, boolean XlY, boolean XgY) {
+    public static void computeSign() {
         // Program enters this function call when x <= y
         // IMPORTANT: See table below code to check for sign conversion
         // i.e: SIGN = '-'
@@ -289,6 +295,16 @@ public class NumberTheory {
                     SIGN = '-';
                 }
                 break;
+            case "multiply":
+                if(SIGN_X == '-' || SIGN_Y == '-') {
+                    SIGN = '-';
+                }
+                if(SIGN_X == '-' && SIGN_Y == '-') {
+                    SIGN = '+';
+                }
+                break;
+            default:
+                SIGN = '+';
         }
     }
     
@@ -345,6 +361,34 @@ public class NumberTheory {
         computeResult(X, X.size()-1);
     }
     
+    // Function for multiplying two numbers
+    public static void multiply(char[] A, char[] B, int b) {
+        
+        ArrayList<Integer> X = new ArrayList<>();
+        int i = 0,j = 0,t = 0;
+        int x, y;
+        
+        for(i = 0; i < A.length; i++) {
+            x = (i < A.length) ? digits.get(A[i]) : 0;
+            for(j = 0; (j < B.length) || (t != 0); j++, t /= 10) {
+                y = (j < B.length) ? digits.get(B[j]) : 0;
+                
+                if(X.size() - 1 >= i+j) {
+                    t += X.get(i+j) + x * y;
+                    if(i+j <= X.size() - 1)
+                        X.set(i+j, t % b);
+                    else
+                        X.add(i+j, t % b);
+                } else {
+                    t += x * y;
+                    X.add(X.size(), t % b);
+                }
+            }
+        }
+        
+        computeResult(X, X.size()-1);
+    }
+    
     // Function for converting the computed array list back to chars
     // This function also prints the result to the console
     public static void computeResult(ArrayList<Integer> X, int i) {
@@ -380,19 +424,6 @@ public class NumberTheory {
 }
 
 /*
-// Function for multiplying two numbers
-void mul(int A[], int B[])
-{
-      int i, j, t, C[NR_CIFRE];
-      memset(C, 0, sizeof(C));
-      for (i = 1; i <= A[0]; i++)
-      {
-              for (t=0, j=1; j <= B[0] || t; j++, t/=10)
-                      C[i+j-1]=(t+=C[i+j-1]+A[i]*B[j])%10;
-              if (i + j - 2 > C[0]) C[0] = i + j - 2;
-      }
-      memcpy(A, C, sizeof(C));
-}
 */
 
 /* 

@@ -370,7 +370,7 @@ public class NumberTheory {
         
         for(i = 0; i < A.length; i++) {
             x = (i < A.length) ? digits.get(A[i]) : 0;
-            for(j = 0; (j < B.length) || (t != 0); j++, t /= 10) {
+            for(j = 0; (j < B.length) || (t != 0); j++, t /= b) {
                 y = (j < B.length) ? digits.get(B[j]) : 0;
                 
                 if(X.size() - 1 >= i+j) {

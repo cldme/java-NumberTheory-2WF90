@@ -389,6 +389,28 @@ public class NumberTheory {
         computeResult(X, X.size()-1);
     }
     
+    // Function for multiplying two numbers using Karatsuba
+    public static void karatsuba(char[] A, char[] B, int b) {
+        // Declare two arraylists for each of the two numbers
+        ArrayList<Character> X_hi = new ArrayList<>();
+        ArrayList<Character> X_lo = new ArrayList<>();
+        ArrayList<Character> Y_hi = new ArrayList<>();
+        ArrayList<Character> Y_lo = new ArrayList<>();
+        
+        
+        // We calculate the length of the two numbers
+        // IMPORTANT: The two numbers have to be of equal length
+        int length = A.length;
+        // We calculate the first half of the number
+        int hi = length / 2;
+        // We calculate the second half of the number
+        int lo = length - hi;
+        
+        // Split the first number in two halves
+        
+        // Split the second number in two halves
+    }
+    
     // Function for converting the computed array list back to chars
     // This function also prints the result to the console
     public static void computeResult(ArrayList<Integer> X, int i) {

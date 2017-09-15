@@ -164,14 +164,15 @@ public class NumberTheory {
                     break;
                 case "subtract":
                     System.out.println("subtract");
-                    R = subtract(X, Y, b);
+                    R = subtract(X1, Y1, b);
                     break;
                 case "multiply":
                     System.out.println("multiply");
                     R = multiply(X1, Y1, b);
                     break;    
                 case "karatsuba":
-                    //System.out.println("karatsuba");
+                    System.out.println("karatsuba");
+                    R = karatsuba(X1, Y1, b);
                     break;
                 default:
                     System.out.println("This is an invalid operation.");
@@ -356,17 +357,29 @@ public class NumberTheory {
     }
     
     // Function for subtracting two numbers
-    public static ArrayList<Integer> subtract(char[] A, char[] B, int b) {
+    public static ArrayList<Integer> subtract(ArrayList<Integer> A, ArrayList<Integer> B, int b) {
         
         int i, t = 0;
         ArrayList<Integer> X = new ArrayList<>();
         ArrayList<Character> Y = new ArrayList<>();
+        ArrayList<Integer> Z = new ArrayList<>();
         int x, y;
         
+        // Compare A and B and interchange them if necessary
+        if(A.get(0) < B.get(0)) {
+            Z = A;
+            A = B;
+            B = Z;
+        }
+        
+        // Reverse the two arrays A and B
+        Collections.reverse(A);
+        Collections.reverse(B);
+        
         // IMPORTANT: A.length > B.length (arrange the two numbers before the function call)
-        for(i = 0; i < A.length; i++) {
-            x = digits.get(A[i]);
-            y = (i < B.length) ? digits.get(B[i]) : 0;
+        for(i = 0; i < A.size(); i++) {
+            x = A.get(i);
+            y = (i < B.size()) ? B.get(i) : 0;
             
             x -= y + t;
             t = (x < 0) ? 1 : 0;
@@ -443,16 +456,18 @@ public class NumberTheory {
         // We calculate the second half of the number
         int lo = length - hi;
         
+        j = 0;
         // Split the first number in two halves
-        for(i = 0; i <= hi; i++)
+        for(i = 0; i < hi; i++)
             X_hi.add(i, A.get(i));
-        for(i = hi + 1; i < A.size(); i++)
+        for(i = hi; i < A.size(); i++)
             X_lo.add(j++, A.get(i));
         
+        j = 0;
         // Split the second number in two halves
-        for(i = 0; i <= hi; i++)
+        for(i = 0; i < hi; i++)
             Y_hi.add(i, B.get(i));
-        for(i = hi + 1; i < A.size(); i++)
+        for(i = hi; i < B.size(); i++)
             Y_lo.add(j++, B.get(i));
         
         ArrayList<Integer> P1 = karatsuba(X_hi, Y_hi, b);
@@ -470,8 +485,7 @@ public class NumberTheory {
         }
         
         // Combine the three products to get the final result.
-        // Make subtraction work with ArrayLists
-        // return P1*(pow1) + (P3 - P1 - P2)*(pow2) + P2;
+        X = add(add(multiply(P1, pow1, b), multiply((subtract(subtract(P3, P1, b),P2, b)), pow2, b), b), P2, b);
         return X;
     }
     

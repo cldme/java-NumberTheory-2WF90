@@ -469,6 +469,9 @@ public class NumberTheory {
             if(i == lo) pow2 = pow1;
         }
         
+        // Combine the three products to get the final result.
+        // Make subtraction work with ArrayLists
+        // return P1*(pow1) + (P3 - P1 - P2)*(pow2) + P2;
         return X;
     }
     

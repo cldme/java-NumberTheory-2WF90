@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -29,6 +30,8 @@ public class NumberTheory {
     // Arrays for storing the two numbers
     public static char[] X;
     public static char[] Y;
+    // Array list for storing the final result
+    public static ArrayList<Integer> R = new ArrayList<>();
     // Variables for comparing the two numbers
     public static boolean XleY, XlY, XgY;
     // Variable for storing the current operation
@@ -115,6 +118,7 @@ public class NumberTheory {
             String operation = map.get(j+1).substring(1,map.get(j+1).length()-1);
             String xNumber = map.get(j+2).substring(4);
             String yNumber = map.get(j+3).substring(4);
+            R.clear();
             
             // Convert the base from string to int
             int b = Integer.parseInt(radix);
@@ -141,18 +145,30 @@ public class NumberTheory {
             // Compute the sign of the final operation
             computeSign();
             
+            // Remove the minus sign from the numbers
+            xNumber = (xNumber.charAt(0) == '-') ? xNumber.substring(1) : xNumber;
+            yNumber = (yNumber.charAt(0) == '-') ? yNumber.substring(1) : yNumber;
+            
+            // Convert the two numbers to ArrayList<Integer>
+            ArrayList<Integer> X1 = new ArrayList<Integer>();
+            for(int k = 0; k < xNumber.length(); k++)
+                X1.add(digits.get(xNumber.charAt(k)));
+            ArrayList<Integer> Y1 = new ArrayList<Integer>();
+            for(int k = 0; k < yNumber.length(); k++)
+                Y1.add(digits.get(yNumber.charAt(k)));
+            
             switch(OPERATION) {
                 case "add":
                     System.out.println("add");
-                    add(X, Y, b);
+                    R = add(X1, Y1, b);
                     break;
                 case "subtract":
                     System.out.println("subtract");
-                    subtract(X, Y, b);
+                    R = subtract(X, Y, b);
                     break;
                 case "multiply":
                     System.out.println("multiply");
-                    multiply(X, Y, b);
+                    R = multiply(X1, Y1, b);
                     break;    
                 case "karatsuba":
                     //System.out.println("karatsuba");
@@ -160,6 +176,10 @@ public class NumberTheory {
                 default:
                     System.out.println("This is an invalid operation.");
             }
+            
+            // Convert the number back to a char array and print to console
+            // IMPORTANT: Now we also convert bigger digits to letters
+            if(!R.isEmpty()) computeResult(R, R.size());
             
             // Skip to the next operation that needs to be computed
             j += 3;
@@ -309,16 +329,20 @@ public class NumberTheory {
     }
     
     // Function for adding two numbers
-    public static void add(char[] A, char[] B, int b) {
+    public static ArrayList<Integer> add(ArrayList<Integer> A, ArrayList<Integer> B, int b) {
         
         int i, t = 0;
         ArrayList<Integer> X = new ArrayList<>();
         ArrayList<Character> Y = new ArrayList<>();
         int x, y;
         
-        for(i = 0; (i < A.length) || (i < B.length) || (t != 0); i++, t/=b) {
-            x = (i < A.length) ? digits.get(A[i]) : 0;
-            y = (i < B.length) ? digits.get(B[i]) : 0;
+        // Reverse the two arrays A and B
+        Collections.reverse(A);
+        Collections.reverse(B);
+        
+        for(i = 0; (i < A.size()) || (i < B.size()) || (t != 0); i++, t/=b) {
+            x = (i < A.size()) ? A.get(i) : 0;
+            y = (i < B.size()) ? B.get(i) : 0;
             t += x + y;
             X.add(i, t % b);
         }
@@ -326,13 +350,13 @@ public class NumberTheory {
         // Update the new number of digits
         i -= 1;
         
-        // Convert the number back to a char array and print to console
-        // IMPORTANT: Now we also convert bigger digits to letters
-        computeResult(X, i);
+        // Reverse the number and return from function call
+        Collections.reverse(X);
+        return X;
     }
     
     // Function for subtracting two numbers
-    public static void subtract(char[] A, char[] B, int b) {
+    public static ArrayList<Integer> subtract(char[] A, char[] B, int b) {
         
         int i, t = 0;
         ArrayList<Integer> X = new ArrayList<>();
@@ -356,22 +380,26 @@ public class NumberTheory {
             X.remove(X.size()-1);
         }
         
-        // Convert the number back to a char array and print to console
-        // IMPORTANT: Now we also convert bigger digits to letters
-        computeResult(X, X.size()-1);
+        // Reverse the number and return from function call
+        Collections.reverse(X);
+        return X;
     }
     
     // Function for multiplying two numbers
-    public static void multiply(char[] A, char[] B, int b) {
+    public static ArrayList<Integer> multiply(ArrayList<Integer> A, ArrayList<Integer> B, int b) {
         
         ArrayList<Integer> X = new ArrayList<>();
         int i = 0,j = 0,t = 0;
         int x, y;
         
-        for(i = 0; i < A.length; i++) {
-            x = (i < A.length) ? digits.get(A[i]) : 0;
-            for(j = 0; (j < B.length) || (t != 0); j++, t /= b) {
-                y = (j < B.length) ? digits.get(B[j]) : 0;
+        // Reverse the two arrays A and B
+        Collections.reverse(A);
+        Collections.reverse(B);
+        
+        for(i = 0; i < A.size(); i++) {
+            x = (i < A.size()) ? A.get(i) : 0;
+            for(j = 0; (j < B.size()) || (t != 0); j++, t /= b) {
+                y = (j < B.size()) ? B.get(j) : 0;
                 
                 if(X.size() - 1 >= i+j) {
                     t += X.get(i+j) + x * y;
@@ -386,29 +414,62 @@ public class NumberTheory {
             }
         }
         
-        computeResult(X, X.size()-1);
+        // Reverse the number and return from function call
+        Collections.reverse(X);
+        return X;
     }
     
     // Function for multiplying two numbers using Karatsuba
-    public static void karatsuba(char[] A, char[] B, int b) {
+    public static ArrayList<Integer> karatsuba(ArrayList<Integer> A, ArrayList<Integer> B, int b) {
         // Declare two arraylists for each of the two numbers
-        ArrayList<Character> X_hi = new ArrayList<>();
-        ArrayList<Character> X_lo = new ArrayList<>();
-        ArrayList<Character> Y_hi = new ArrayList<>();
-        ArrayList<Character> Y_lo = new ArrayList<>();
+        ArrayList<Integer> X_hi = new ArrayList<>();
+        ArrayList<Integer> X_lo = new ArrayList<>();
+        ArrayList<Integer> Y_hi = new ArrayList<>();
+        ArrayList<Integer> Y_lo = new ArrayList<>();
+        // Declare array for storing result
+        ArrayList<Integer> X = new ArrayList<>();
+        int i = 0,j = 0;
         
+        if(A.size() == 1) {
+            X.add(A.get(0) * B.get(0));
+            return X;
+        }
         
         // We calculate the length of the two numbers
         // IMPORTANT: The two numbers have to be of equal length
-        int length = A.length;
+        int length = A.size();
         // We calculate the first half of the number
         int hi = length / 2;
         // We calculate the second half of the number
         int lo = length - hi;
         
         // Split the first number in two halves
+        for(i = 0; i <= hi; i++)
+            X_hi.add(i, A.get(i));
+        for(i = hi + 1; i < A.size(); i++)
+            X_lo.add(j++, A.get(i));
         
         // Split the second number in two halves
+        for(i = 0; i <= hi; i++)
+            Y_hi.add(i, B.get(i));
+        for(i = hi + 1; i < A.size(); i++)
+            Y_lo.add(j++, B.get(i));
+        
+        ArrayList<Integer> P1 = karatsuba(X_hi, Y_hi, b);
+        ArrayList<Integer> P2 = karatsuba(X_lo, Y_lo, b);
+        ArrayList<Integer> P3 = karatsuba(add(X_hi, X_lo, b), add(Y_hi, Y_lo, b), b);
+        
+        ArrayList<Integer> pow1 = new ArrayList<Integer>();
+        ArrayList<Integer> pow2 = new ArrayList<Integer>();
+        ArrayList<Integer> base = new ArrayList<Integer>();
+        pow1.add(b);
+        base.add(b);
+        for(i = 1; i < length; i++) {
+            pow1 = multiply(pow1, base, b);
+            if(i == lo) pow2 = pow1;
+        }
+        
+        return X;
     }
     
     // Function for converting the computed array list back to chars
@@ -417,13 +478,13 @@ public class NumberTheory {
         
         ArrayList<Character> Y = new ArrayList<>();
         
-        for(int j = i; j >= 0; j--) {
+        for(int j = 0; j < i; j++) {
             // Get the value of the new digit
             int temp = X.get(j);
             // Convert it back using the map
             char digit = letters.get(temp);
             
-            // NOTE: When adding the chars to the new array we also revert the order
+            // NOTE: When adding the chars to the new array we DO NOT revert the order
             // We will have the correct orientation of digits after this loop
             Y.add(digit);
         }

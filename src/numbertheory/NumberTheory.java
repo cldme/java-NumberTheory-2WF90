@@ -352,6 +352,8 @@ public class NumberTheory {
         i -= 1;
         
         // Reverse the number and return from function call
+        Collections.reverse(A);
+        Collections.reverse(B);
         Collections.reverse(X);
         return X;
     }
@@ -366,7 +368,7 @@ public class NumberTheory {
         int x, y;
         
         // Compare A and B and interchange them if necessary
-        if(A.get(0) < B.get(0)) {
+        if(A.size() < B.size() || (A.get(0) < B.get(0) && A.size() == B.size())) {
             Z = A;
             A = B;
             B = Z;
@@ -394,6 +396,8 @@ public class NumberTheory {
         }
         
         // Reverse the number and return from function call
+        Collections.reverse(A);
+        Collections.reverse(B);
         Collections.reverse(X);
         return X;
     }
@@ -428,6 +432,8 @@ public class NumberTheory {
         }
         
         // Reverse the number and return from function call
+        Collections.reverse(A);
+        Collections.reverse(B);
         Collections.reverse(X);
         return X;
     }
@@ -441,10 +447,32 @@ public class NumberTheory {
         ArrayList<Integer> Y_lo = new ArrayList<>();
         // Declare array for storing result
         ArrayList<Integer> X = new ArrayList<>();
-        int i = 0,j = 0;
+        ArrayList<Integer> Y = new ArrayList<>();
+        int i = 0,j = 0, temp;
+        
+        if(A.size() > B.size()) {
+            Collections.reverse(B);
+            int dim = A.size();
+            while(B.size() != dim) {
+                B.add(0);
+            }
+            Collections.reverse(B);
+        } else if(A.size() < B.size()) {
+            Collections.reverse(A);
+            int dim = B.size();
+            while(A.size() != dim) {
+                A.add(0);
+            }
+            Collections.reverse(A);
+        }
         
         if(A.size() == 1) {
-            X.add(A.get(0) * B.get(0));
+            int digit = A.get(0) * B.get(0);
+            while(digit != 0) {
+                X.add(digit % b);
+                digit /= b;
+            }
+            Collections.reverse(X);
             return X;
         }
         
@@ -479,13 +507,34 @@ public class NumberTheory {
         ArrayList<Integer> base = new ArrayList<Integer>();
         pow1.add(b);
         base.add(b);
-        for(i = 1; i < length; i++) {
+        if(length % 2 == 1) temp = length / 2 + 1;
+        else temp = length / 2;
+        for(i = 1; i < 2 * temp; i++) {
+            if(i == temp) pow2 = pow1;
             pow1 = multiply(pow1, base, b);
-            if(i == lo) pow2 = pow1;
         }
         
+        if (P1.size() == 0) P1.add(0);
+        if (P2.size() == 0) P2.add(0);
+        if (P3.size() == 0) P3.add(0);
+        
         // Combine the three products to get the final result.
-        X = add(add(multiply(P1, pow1, b), multiply((subtract(subtract(P3, P1, b),P2, b)), pow2, b), b), P2, b);
+        X = multiply(pow1, P1, b);
+        Y = subtract(P3, P1, b);
+        Y = subtract(Y, P2, b);
+        Y = multiply(pow2, Y, b);
+        X = add(X, Y, b);
+        X = add(X, P2, b);
+        
+        //X = add(add(multiply(P1, pow1, b), multiply((subtract(subtract(P3, P1, b),P2, b)), pow2, b), b), P2, b);
+        
+        // Remove all the 0's from the start of the array list
+        i = 0;
+        while(X.get(i) == 0) {
+            X.remove(i);
+            i++;
+        }
+        
         return X;
     }
     

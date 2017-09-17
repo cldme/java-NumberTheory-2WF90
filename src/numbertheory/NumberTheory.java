@@ -448,7 +448,7 @@ public class NumberTheory {
         // Declare array for storing result
         ArrayList<Integer> X = new ArrayList<>();
         ArrayList<Integer> Y = new ArrayList<>();
-        int i = 0,j = 0, temp;
+        int i = 0,j = 0, temp, tempD = 1;
         
         if(A.size() > B.size()) {
             Collections.reverse(B);
@@ -530,9 +530,12 @@ public class NumberTheory {
         
         // Remove all the 0's from the start of the array list
         i = 0;
-        while(X.get(i) == 0) {
-            X.remove(i);
-            i++;
+        if(X.size() > 0) {
+            tempD = X.get(0);
+        }
+        while(tempD == 0 && X.size() > 0) {
+            X.remove(0);
+            if(X.size() > 0) tempD = X.get(0);
         }
         
         return X;

@@ -7,12 +7,15 @@ package numbertheory;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Scanner;
 
 
 public class NumberTheory {
@@ -48,7 +51,7 @@ public class NumberTheory {
     // Variable for checking if we are provided with an answer
     public static boolean hasAnswer = false;
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         // TODO code application logic here
         
         // Name of the input file i.e: "example.txt"
@@ -112,11 +115,23 @@ public class NumberTheory {
             
             // Give the user a small hint as to what might have gone wrong
             System.out.println("Check if the input file is placed in the same directory and please name it example.txt");
+            System.exit(0);
             
         } catch(IOException e) {
             
             // Catch the IOException and inform user
             System.out.println("There was an error while reading the " + inputFile + " file.");
+        }
+        
+        // Prompt user with choice: save output in file or print in console
+        System.out.println("Do you wish to save the output in a file (output.txt) ? (Y/N)");
+        Scanner scanner = new Scanner(System.in);
+        String temp = scanner.nextLine();
+        temp = temp.toLowerCase();
+        if(temp.equals("y") || temp.equals("yes") || temp.charAt(0) == 'y') {
+            // Change where the program outputs the results (now in output.txt)
+            PrintStream out = new PrintStream(new FileOutputStream("output.txt"));
+            System.setOut(out);
         }
         
         // Run all the setup for the program

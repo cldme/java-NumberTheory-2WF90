@@ -28,12 +28,13 @@ public class NumberTheory {
     // Arrays for storing the different types of digits
     public static char[] digitsReal = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     // Arrays for storing the two numbers
-    public static char[] X;
-    public static char[] Y;
+    public static ArrayList<Integer> X = new ArrayList<>();
+    public static ArrayList<Integer> Y = new ArrayList<>();
     // Array list for storing the final result
     public static ArrayList<Integer> R = new ArrayList<>();
     // Variables for comparing the two numbers
-    public static boolean XleY, XlY, XgY;
+    // XlY = X less than Y;    Xgy = X greater than Y
+    public static boolean XlY, XgY;
     // Variable for storing the current operation
     public static String OPERATION;
     // Variable for storing the final sign of the computation
@@ -41,6 +42,11 @@ public class NumberTheory {
     // Variables for storing the signs of X and Y
     public static char SIGN_X;
     public static char SIGN_Y;
+    // Variable for storing the number of elementary operations (for multiplication)
+    public static int NUMBER_OPERATIONS;
+    public static int NUM_OPERATIONS;
+    // Variable for checking if we are provided with an answer
+    public static boolean hasAnswer = false;
     
     public static void main(String[] args) {
         // TODO code application logic here
@@ -80,6 +86,10 @@ public class NumberTheory {
                 // Trim extra whitespaces from the beginning/end of the string
                     line = line.trim();
                 
+                // Check if the line has an answer on it, in which case we store it as well
+                // We remove the hash symbol from the beginning
+                if(line.length() >= 10 && line.charAt(0) == '#')
+                    if(line.substring(3,9).equals("answer")) line = line.substring(2);
                 // Store each line in the hash map
                 // IMPORTANT: Stores all the lines that are not comments (do not start with # symbol)
                 if(line.length() > 0 && line.charAt(0) != '#') {    
@@ -118,7 +128,17 @@ public class NumberTheory {
             String operation = map.get(j+1).substring(1,map.get(j+1).length()-1);
             String xNumber = map.get(j+2).substring(4);
             String yNumber = map.get(j+3).substring(4);
+            String answer = map.get(j+4).substring(0);
+            
+            // Check if we are provided with an answer
+            answerGiven(answer);
+            
+            // Clear all the ArrayLists; New computation begins
             R.clear();
+            X.clear();
+            Y.clear();
+            NUMBER_OPERATIONS = 0;
+            NUM_OPERATIONS = 0;
             
             // Convert the base from string to int
             int b = Integer.parseInt(radix);
@@ -126,53 +146,42 @@ public class NumberTheory {
             // Update the global operation
             OPERATION = operation;
             
-            // Convert xNumber to an array of digits (in reverse order)
-            // IMPORTANT: The array will have on position 0 the number of digits
-            X = getDigits(xNumber);
             // Read the sign for X
             SIGN_X = (xNumber.charAt(0) == '-') ? '-' : '+';
             
-            // Convert yNumber to an array of digits (in reverse order)
-            // IMPORTANT: The array will have on position 0 the number of digits
-            Y = getDigits(yNumber);
             // Read the sign for Y
             SIGN_Y = (yNumber.charAt(0) == '-') ? '-' : '+';
-            
-            // Compare X and Y so that X > Y (if not interchange the two vectors)
-            // IMPORTANT: Here we also need to consider the special cases
-            // i.e: add two numbers, the second one is negative means changing the operation to subtraction ?!
-            compareXY();
-            // Compute the sign of the final operation
-            computeSign();
             
             // Remove the minus sign from the numbers
             xNumber = (xNumber.charAt(0) == '-') ? xNumber.substring(1) : xNumber;
             yNumber = (yNumber.charAt(0) == '-') ? yNumber.substring(1) : yNumber;
-            
             // Convert the two numbers to ArrayList<Integer>
-            ArrayList<Integer> X1 = new ArrayList<Integer>();
             for(int k = 0; k < xNumber.length(); k++)
-                X1.add(digits.get(xNumber.charAt(k)));
-            ArrayList<Integer> Y1 = new ArrayList<Integer>();
+                X.add(digits.get(xNumber.charAt(k)));
             for(int k = 0; k < yNumber.length(); k++)
-                Y1.add(digits.get(yNumber.charAt(k)));
+                Y.add(digits.get(yNumber.charAt(k)));
+            
+            // Compare X and Y and change them if neccessary so that A > B
+            compareNumbers();
+            // Compute the sign of the final operation
+            computeSign();
             
             switch(OPERATION) {
                 case "add":
                     System.out.println("add");
-                    R = add(X1, Y1, b);
+                    R = add(X, Y, b);
                     break;
                 case "subtract":
                     System.out.println("subtract");
-                    R = subtract(X1, Y1, b);
+                    R = subtract(X, Y, b);
                     break;
                 case "multiply":
                     System.out.println("multiply");
-                    R = multiply(X1, Y1, b);
+                    R = multiply(X, Y, b);
                     break;    
                 case "karatsuba":
                     System.out.println("karatsuba");
-                    R = karatsuba(X1, Y1, b);
+                    R = karatsuba(X, Y, b);
                     break;
                 default:
                     System.out.println("This is an invalid operation.");
@@ -182,37 +191,19 @@ public class NumberTheory {
             // IMPORTANT: Now we also convert bigger digits to letters
             if(!R.isEmpty()) computeResult(R, R.size());
             
+            // Print the given answer to the output file as well
             // Skip to the next operation that needs to be computed
-            j += 3;
-        }
-    }
-    
-    // Function for splitting numbers in one digit array
-    // IMPORTANT: The array which is returned will contain the orginal digits in reverse order
-    public static char[] getDigits(String number) {
-        
-        // Array for storing the digits
-        char[] X;
-        // Variable for storing the stop position in the number string
-        int temp = 0;
-        
-        if(number.charAt(0) == '-') {
-            X = new char[number.length()-1];
-            temp = 1;
-        } else {
-            X = new char[number.length()];
-            temp = 0;
-        }
-        
-        // Index used to create the new array
-        int j = 0;
-        
-        for(int i = number.length(); i > temp; i--) {
+            if(hasAnswer) {
+                System.out.println(answer);
+                j += 4;
+            } else {
+                j += 3;
+            }
             
-            X[j++] = number.charAt(i-1);
+            // Print number of elementary operations (for multiplication)
+            if(OPERATION.equals("multiply")) System.out.println("[operations] " + NUMBER_OPERATIONS);
+            if(OPERATION.equals("karatsuba")) System.out.println("[operations] " + NUM_OPERATIONS);
         }
-        
-        return X;
     }
     
     // Function for building the digits map; it maps each digit to its value
@@ -228,45 +219,32 @@ public class NumberTheory {
         }
     }
     
-    public static void compareXY() {
-        
-        int i = X.length-1, j = 0;
-        int x,y;
-        // XleY is X <= Y; XlY is X < Y; XgY is X > Y
-        XleY = XlY = XgY = false;
-        
-        if(X.length == Y.length) {
-            x = digits.get(X[i]);
-            y = digits.get(Y[i]);
-            while(x == y && i > 0) {
-                i -= 1;
-                x = digits.get(X[i]);
-                y = digits.get(Y[i]);
+    public static void compareNumbers() {
+        ArrayList<Integer> Z = new ArrayList<>();
+        int i = 0;
+        // Compare X and Y and interchange them if necessary
+        if(X.size() == Y.size()) {
+            while(X.get(i) == Y.get(i)) i++;
+            if(X.get(i) < Y.get(i)) {
+                Z = X;
+                X = Y;
+                Y = Z;
+                XlY = true;
+                XgY = false;
             }
-            if(x < y) {
-                changeArrays();
-                XleY = XlY = true;
-            }
-            if(i == 0) {
-                XleY = XlY = true;
-            }
-        } else if(X.length < Y.length) {
-            changeArrays();
+        } else if(X.size() < Y.size()) {
+            Z = X;
+            X = Y;
+            Y = Z;
             XlY = true;
+            XgY = false;
         } else {
+            XlY = false;
             XgY = true;
         }
     }
     
-    public static void changeArrays() {
-        // Change the two arrays such that X > Y
-        char[] Z = X;
-        X = Y;
-        Y = Z;
-    }
-    
     public static void computeSign() {
-        // Program enters this function call when x <= y
         // IMPORTANT: See table below code to check for sign conversion
         // i.e: SIGN = '-'
         switch(OPERATION) {
@@ -324,6 +302,14 @@ public class NumberTheory {
                     SIGN = '+';
                 }
                 break;
+            case "karatsuba":
+                if(SIGN_X == '-' || SIGN_Y == '-') {
+                    SIGN = '-';
+                }
+                if(SIGN_X == '-' && SIGN_Y == '-') {
+                    SIGN = '+';
+                }
+                break;
             default:
                 SIGN = '+';
         }
@@ -364,15 +350,7 @@ public class NumberTheory {
         int i, t = 0;
         ArrayList<Integer> X = new ArrayList<>();
         ArrayList<Character> Y = new ArrayList<>();
-        ArrayList<Integer> Z = new ArrayList<>();
         int x, y;
-        
-        // Compare A and B and interchange them if necessary
-        if(A.size() < B.size() || (A.get(0) < B.get(0) && A.size() == B.size())) {
-            Z = A;
-            A = B;
-            B = Z;
-        }
         
         // Reverse the two arrays A and B
         Collections.reverse(A);
@@ -420,13 +398,17 @@ public class NumberTheory {
                 
                 if(X.size() - 1 >= i+j) {
                     t += X.get(i+j) + x * y;
-                    if(i+j <= X.size() - 1)
+                    NUMBER_OPERATIONS += 2;
+                    if(i+j <= X.size() - 1) {
                         X.set(i+j, t % b);
-                    else
+                    }
+                    else {
                         X.add(i+j, t % b);
+                    }
                 } else {
                     t += x * y;
                     X.add(X.size(), t % b);
+                    NUMBER_OPERATIONS += 2;
                 }
             }
         }
@@ -450,12 +432,15 @@ public class NumberTheory {
         ArrayList<Integer> Y = new ArrayList<>();
         int i = 0,j = 0, temp, tempD = 1;
         
+        // Make A and B of equal size by adding leading zeros
         if(A.size() > B.size()) {
+            // We first revert the ArrayList so that adding is made easier
             Collections.reverse(B);
             int dim = A.size();
             while(B.size() != dim) {
                 B.add(0);
             }
+            // Reverse the array again so we have it in the correct orientation
             Collections.reverse(B);
         } else if(A.size() < B.size()) {
             Collections.reverse(A);
@@ -466,8 +451,12 @@ public class NumberTheory {
             Collections.reverse(A);
         }
         
+        // If the size of both the arrays is one we just multiply the two digits and return the value
+        // IMPORTANT: The size will be the same for both arrays
         if(A.size() == 1) {
             int digit = A.get(0) * B.get(0);
+            // Also count the number of elementary operations (2 x add; 2 x subtract; 2 x multiply)
+            NUM_OPERATIONS += 1;
             while(digit != 0) {
                 X.add(digit % b);
                 digit /= b;
@@ -498,10 +487,12 @@ public class NumberTheory {
         for(i = hi; i < B.size(); i++)
             Y_lo.add(j++, B.get(i));
         
+        // Apply the Karatsuba algorithm; we get P1, P2, P3
         ArrayList<Integer> P1 = karatsuba(X_hi, Y_hi, b);
         ArrayList<Integer> P2 = karatsuba(X_lo, Y_lo, b);
         ArrayList<Integer> P3 = karatsuba(add(X_hi, X_lo, b), add(Y_hi, Y_lo, b), b);
         
+        // Calculate b^length and b^(length/2)
         ArrayList<Integer> pow1 = new ArrayList<Integer>();
         ArrayList<Integer> pow2 = new ArrayList<Integer>();
         ArrayList<Integer> base = new ArrayList<Integer>();
@@ -514,6 +505,7 @@ public class NumberTheory {
             pow1 = multiply(pow1, base, b);
         }
         
+        // Account for the case in which either of the three P's is empty
         if (P1.size() == 0) P1.add(0);
         if (P2.size() == 0) P2.add(0);
         if (P3.size() == 0) P3.add(0);
@@ -525,8 +517,11 @@ public class NumberTheory {
         Y = multiply(pow2, Y, b);
         X = add(X, Y, b);
         X = add(X, P2, b);
+        // Also count the number of elementary operations (2 x addition; 2 x subtraction)
+        NUM_OPERATIONS += 4;
         
-        //X = add(add(multiply(P1, pow1, b), multiply((subtract(subtract(P3, P1, b),P2, b)), pow2, b), b), P2, b);
+        // This is also equivalent to the following:
+        // X = add(add(multiply(P1, pow1, b), multiply((subtract(subtract(P3, P1, b),P2, b)), pow2, b), b), P2, b);
         
         // Remove all the 0's from the start of the array list
         i = 0;
@@ -558,8 +553,10 @@ public class NumberTheory {
             Y.add(digit);
         }
         
-        // !! TO-DO: Multiply and Karatsuba
-        // Print the correct sign (now works for add/subtract)
+        // Print the correct format: [result]
+        // This is to let the user know that this is the result of the computation
+        System.out.print("[result] ");
+        // Print the correct sign for the final computation result
         if(SIGN != ' ' && SIGN != '+') {
             System.out.print(SIGN);
             // Revert the sign back to its original state
@@ -572,6 +569,15 @@ public class NumberTheory {
             System.out.print(Y.get(j));
         }
         System.out.println();
+    }
+    
+    public static void answerGiven(String answer) {
+        // Check to see if the user has provided an answer
+        if(answer.length() >= 8) {
+            String word = answer.substring(1, 7);
+            if(word.equals("answer")) hasAnswer = true;
+            else hasAnswer = false;
+        }
     }
 }
 
